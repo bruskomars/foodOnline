@@ -1,4 +1,6 @@
 from django import forms
+
+from vendor.models import Vendor
 from .models import *
 from django.contrib.auth.forms import UserCreationForm
 
@@ -18,6 +20,7 @@ class UserForm(forms.ModelForm):
             raise forms.ValidationError(
                 'Password did not match!'
             )
+
 
 # TESTING ONLY
 # class UserForm(UserCreationForm):
