@@ -1,0 +1,14 @@
+{% autoescape off %}
+
+Hi {{ user.first_name }},
+
+{% if is_approved %}
+Congratulations! Your restaurant is now approved.
+
+{% else %}
+Sorry! Your restaurant is not eligible for publishing your food menu or our marketplace.
+
+{% endif %}
+
+
+{% endautoescape %}
