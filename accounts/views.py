@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect
 from django.utils.http import urlsafe_base64_decode
 
 from vendor.forms import VendorForm
+from vendor.models import Vendor
+
 from .forms import *
 from .models import *
 from django.contrib import messages
