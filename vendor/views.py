@@ -91,7 +91,9 @@ def add_category(request):
             category = form.save(commit=False)
 
             category.vendor = get_vendor(request)
-            category.slug = slugify(cat_name)
+            category.save() # to generate the cat slug id
+
+            category.slug = slugify(cat_name)+"-"+str(+category.id)
             category.save()
 
             messages.success(request, 'New category added successfully!')
