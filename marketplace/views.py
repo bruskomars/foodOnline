@@ -139,6 +139,7 @@ def search(request):
 
     if latitude and longitude and radius:
         pnt = GEOSGeometry('POINT(%s %s)' % (longitude, latitude))
+
         vendors = Vendor.objects.filter(
             Q(id__in=fetch_vendors_by_fooditem) |
             Q(vendor_name__icontains=keyword, is_approved=True, user__is_active=True),
