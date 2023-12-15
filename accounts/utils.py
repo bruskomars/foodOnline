@@ -33,7 +33,11 @@ def send_verification_email(request, user, mail_subject, email_template):
 
 def send_notification(mail_subject, mail_template, context):
     from_email = settings.DEFAULT_FROM_EMAIL
-    message = render_to_string(f'accounts/emails/{mail_template}.html', context)
-    to_email = context['user'].email
-    mail = EmailMessage(mail_subject, message, from_email, to=[to_email])
+    message = render_to_string(mail_template, context)
+    if isinstance(context['to_email'], str): # TO CHECK IF THE EMAIL IS SINGLE OR ONLY ONE EMAIL, IT WILL SEND IT TO THE LIST
+        to_email = []
+        to_email.append(context['to_email'])
+    else:
+        to_email = context['to_email'] # EMAILS ARE MORE THAN 1
+    mail = EmailMessage(mail_subject, message, from_email, to=to_email)
     mail.send()
