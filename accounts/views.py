@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import render, redirect
 from django.template.defaultfilters import slugify
 from django.utils.http import urlsafe_base64_decode
+from orders.models import Order
 
 from vendor.forms import VendorForm
 from vendor.models import Vendor
@@ -193,7 +194,14 @@ def myAccount(request):
 @login_required(login_url='login')
 @user_passes_test(check_role_customer)
 def customerDashboard(request):
-    return render(request, 'accounts/customerDashboard.html')
+    orders = Order.objects.filter(user=request.user, is_ordered=True)
+    recent_orders = Order.objects.filter(user=request.user, is_ordered=True)[:5]
+    context = {
+        'orders': orders,
+        'orders_count': orders.count(),
+        'recent_orders':recent_orders,
+    }
+    return render(request, 'accounts/customerDashboard.html', context)
 
 @login_required(login_url='login')
 @user_passes_test(check_role_vendor)
