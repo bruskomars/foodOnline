@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from marketplace.models import Cart
+from marketplace.models import Cart, Tax
 from marketplace.context_processors import get_cart_amounts
+from menu.models import FoodItem
 from .forms import OrderForm
 from .models import Order, Payment, OrderedFood
 import simplejson as json
@@ -17,6 +18,39 @@ def place_order(request):
 
     if cart_count <= 0:
         return redirect('marketplace')
+
+    vendor_ids = []
+
+    for i in cart_items:
+        if i.fooditem.vendor.id not in vendor_ids:
+            vendor_ids.append(i.fooditem.vendor.id)
+
+    get_tax = Tax.objects.filter(is_active=True)
+    subtotal = 0
+    total_data = {}
+    k = {}
+    for i in cart_items:
+        fooditem = FoodItem.objects.get(pk=i.fooditem.id, vendor_id__in=vendor_ids)
+        v_id = fooditem.vendor.id
+        if v_id in k:
+            subtotal = k[v_id]
+            subtotal += (fooditem.price * i.quantity)
+            k[v_id] = subtotal
+        else:
+            subtotal = (fooditem.price * i.quantity)
+            k[v_id] = subtotal
+
+        # Calculate tax data
+        tax_dict = {}
+        for i in get_tax:
+            tax_type = i.tax_type
+            tax_percentage = i.tax_percentage
+            tax_amount = round((tax_percentage * subtotal) / 100, 2)
+            tax_dict.update({tax_type: {str(tax_percentage): str(tax_amount)}})
+
+        # Construct total data
+        total_data.update({fooditem.vendor.id: {str(subtotal): str(tax_dict)}})
+
 
     # Get value from context_processor
     subtotal = get_cart_amounts(request)['subtotal']
@@ -40,12 +74,14 @@ def place_order(request):
             order.user = request.user
             order.total = grandtotal
             order.tax_data = json.dumps(tax_data) # convert data from database to json
+            order.total_data = json.dumps(total_data)
             order.total_tax = total_tax
             order.payment_method = request.POST['payment_method'] ## Get the payment method in checkout URL
 
             order.save() #order.id is generated
 
             order.order_number = generate_order_number(order.id)
+            order.vendors.add(*vendor_ids)
             order.save()
 
             context = {
@@ -150,7 +186,6 @@ def order_complete(request):
             subtotal += (item.price * item.quantity)
 
         tax_data = json.loads(order.tax_data)
-        print(tax_data)
 
         context = {
             'order': order,

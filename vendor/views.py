@@ -10,6 +10,7 @@ from accounts.models import UserProfile
 from accounts.views import check_role_vendor
 from menu.forms import CategoryForm, FoodItemForm
 from menu.models import Category, FoodItem
+from orders.models import Order, OrderedFood
 
 from vendor.forms import VendorForm, OpeningHourForm
 from accounts.forms import UserProfileForm
@@ -72,7 +73,6 @@ def fooditems_by_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     fooditems = FoodItem.objects.filter(vendor=vendor, category=category)
 
-    print(fooditems)
     context = {
         'fooditems':fooditems,
         'category':category,
@@ -257,3 +257,18 @@ def remove_opening_hours(request, pk):
             hour = get_object_or_404(OpeningHour, pk=pk)
             hour.delete()
             return JsonResponse({'status': 'Success', 'id': pk})
+
+def order_detail(request, order_number):
+    try:
+        order = Order.objects.get(order_number=order_number, is_ordered=True)
+        ordered_food = OrderedFood.objects.filter(order=order, fooditem__vendor=get_vendor(request))
+
+        context = {
+            'ordered_food': ordered_food,
+            'order': order,
+        }
+
+        return render(request, 'vendor/order_detail.html', context)
+
+    except:
+        return redirect('vendor')

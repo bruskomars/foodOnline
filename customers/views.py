@@ -52,9 +52,7 @@ def order_detail(request, order_number):
         for item in ordered_food:
             subtotal += (item.price * item.quantity)
 
-        print(order.tax_data)
         tax_data = json.loads(order.tax_data)
-        print(tax_data)
 
         context = {
             'order': order,
